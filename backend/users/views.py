@@ -1,48 +1,62 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, status, viewsets
+from djoser.views import UserViewSet
+from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.permissions import IsAuthorOrAdmin
 from .models import Follow
 from .paginators import CustomPagination
-from .serializers import FollowSerializer, FollowerSerializer
+from .permissions import IsOwnerOrAdminOrReadOnly
+from .serializers import CustomUserCreateSerializer, FollowSerializer
+from .serializers import FollowerSerializer
 
 User = get_user_model()
 
 
-class FollowViewSet(viewsets.ModelViewSet):
-    queryset = Follow.objects.all()
-    serializer_class = FollowSerializer
-    permission_classes = [IsAuthorOrAdmin]
-    pagination_class = None
+class CustomUserViewSet(UserViewSet):
+    queryset = User.objects.all()
+    pagination_class = CustomPagination
+    permission_classes = (IsOwnerOrAdminOrReadOnly,)
+    serializer_class = CustomUserCreateSerializer
 
-    @action(detail=True, permission_classes=[IsAuthorOrAdmin], methods=['post'])
-    def follow(self, request, id):
-        data = {'user': request.user.id, 'following': id}
-        serializer = FollowSerializer(data=data, context={'request': request})
+    @action(detail=True, permission_classes=[IsAuthenticated])
+    def subscribe(self, request, id=None):
+        user = request.user
+        author = get_object_or_404(User, id=id)
+
+        data = {
+            'user': user.id,
+            'author': author.id,
+        }
+        serializer = FollowSerializer(
+            data=data, context={'request': request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @follow.mapping.delete
-    def unfollow(self, request, id):
+    @subscribe.mapping.delete
+    def delete_subscribe(self, request, id=None):
         user = request.user
-        following = get_object_or_404(User, id=id)
-        subscription = get_object_or_404(
-                     Follow, user=user, following=following
-                 )
-        subscription.delete()
+        author = get_object_or_404(User, id=id)
+        subscribe = get_object_or_404(
+            Follow, user=user, author=author
+        )
+        subscribe.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-class ListFollowViewSet(generics.ListAPIView):
-    queryset = User.objects.all()
-    permission_classes = [permissions.IsAuthenticated, ]
-    serializer_class = FollowerSerializer
-    pagination_class = CustomPagination
-
-    def get_queryset(self):
-        user = self.request.user
-        return User.objects.filter(following__user=user)
+    @action(detail=False, permission_classes=[IsAuthenticated])
+    def subscriptions(self, request):
+        user = request.user
+        queryset = Follow.objects.filter(user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowerSerializer(
+            pages,
+            many=True,
+            context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
