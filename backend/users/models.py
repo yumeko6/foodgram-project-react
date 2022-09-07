@@ -17,13 +17,15 @@ class Follow(models.Model):
 		related_name='following',
 		verbose_name='Автор',
 	)
+	subscription_date = models.DateField(
+		auto_now_add=True, verbose_name='Дата подписки')
 
 	class Meta:
-		ordering = ['-id']
+		ordering = ['-subscription_date']
 		verbose_name = 'Подписка'
+		verbose_name_plural = 'Подписки'
 		constraints = [
 			models.UniqueConstraint(
-				fields=['user', 'author'],
-				name='follow unique',
+				fields=['user', 'author'], name='follow unique'
 			)
 		]
