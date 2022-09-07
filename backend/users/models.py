@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+
 User = get_user_model()
 
 
@@ -21,7 +22,7 @@ class Follow(models.Model):
 		auto_now_add=True, verbose_name='Дата подписки')
 
 	class Meta:
-		ordering = ['-subscription_date']
+		ordering = ['-id']
 		verbose_name = 'Подписка'
 		verbose_name_plural = 'Подписки'
 		constraints = [

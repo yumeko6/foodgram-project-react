@@ -48,7 +48,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 			return ShowRecipeFullSerializer
 		return AddRecipeSerializer
 
-	@action(detail=True, permission_classes=[IsAuthorOrAdmin], methods=['post'])
+	@action(detail=True, permission_classes=[IsAuthorOrAdmin],
+			methods=['post'])
 	def favorite(self, request, pk):
 		data = {'user': request.user.id, 'recipe': pk}
 		serializer = FavouriteSerializer(
@@ -66,7 +67,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 		favorite.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
-	@action(detail=True, permission_classes=[IsAuthorOrAdmin], methods=['post'])
+	@action(detail=True, permission_classes=[IsAuthorOrAdmin],
+			methods=['post'])
 	def shopping_cart(self, request, pk):
 		data = {'user': request.user.id, 'recipe': pk}
 		serializer = ShoppingListSerializer(
