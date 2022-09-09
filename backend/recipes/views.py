@@ -1,3 +1,5 @@
+from typing import List
+
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -103,13 +105,13 @@ class RecipesViewSet(ModelViewSet):
 		all_count_ingredients = user_shopping_list.values(
 			'ingredient__name', 'ingredient__measurement_unit').annotate(
 			total=Sum('amount')).order_by('-total')
-		ingredients_list = []
+		ingredients: List = []
 		for ingredient in all_count_ingredients:
-			ingredients_list.append(
+			ingredients.append(
 				f'{ingredient["ingredient__name"]} - '
 				f'{ingredient["total"]} '
 				f'{ingredient["ingredient__measurement_unit"]} \n'
 			)
-		response = HttpResponse(ingredients_list, 'Content-Type: text/plain')
+		response = HttpResponse(ingredients, 'Content-Type: text/plain')
 		response['Content-Disposition'] = 'attachment; filename="to_buy.txt"'
 		return response

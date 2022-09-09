@@ -1,3 +1,5 @@
+from typing import List
+
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
@@ -88,14 +90,14 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ingredients = data['ingredients']
-        ingredients_list = []
+        final_ingredients: List = []
         for ingredient in ingredients:
             ingredient_id = ingredient['id']
-            if ingredient_id in ingredients_list:
+            if ingredient_id in final_ingredients:
                 raise serializers.ValidationError(
                     {'errors': 'Ингредиенты должны быть уникальными!'}
                 )
-            ingredients_list.append(ingredient_id)
+            final_ingredients.append(ingredient_id)
             amount = ingredient['amount']
             if int(amount) <= 0:
                 raise serializers.ValidationError(
@@ -107,13 +109,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'errors': 'Нужно выбрать хотя бы один тэг!'}
             )
-        tags_list = []
+        tags: List = []
         for tag in tags:
-            if tag in tags_list:
+            if tag in tags:
                 raise serializers.ValidationError(
                     {'errors': 'Тэги должны быть уникальными!'}
                 )
-            tags_list.append(tag)
+            tags.append(tag)
 
         cooking_time = data['cooking_time']
         if int(cooking_time) <= 0:
@@ -124,12 +126,12 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def create_ingredients(ingredients, recipe):
-        for ingredient in ingredients:
-            IngredientAmount.objects.create(
+        IngredientAmount.objects.bulk_create(
+            [IngredientAmount(
                 recipe=recipe,
                 ingredient=ingredient['id'],
-                amount=ingredient['amount'],
-            )
+                amount=ingredient['amount']) for ingredient in ingredients]
+        )
 
     @staticmethod
     def create_tags(tags, recipe):
@@ -171,8 +173,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
         recipe = data['recipe']
         if Favorite.objects.filter(user=request.user, recipe=recipe).exists():
             raise serializers.ValidationError(
