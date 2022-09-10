@@ -10,9 +10,12 @@
 
 ### Проверить работу можно по адресу http://51.250.29.115/
 
+##### Тестовые данные администратора: email: test_admin@admin.admin password: !qaz@wsx#edc
+##### Тестовые данные пользователя: email: ivan@test.ru password: testivan123
 
 
-#### Подготовка и запуск проекта
+
+### Подготовка и запуск проекта
 
 ##### Клонируйте репозиторий
 `https://github.com/yumeko6/foodgram-project-react`
