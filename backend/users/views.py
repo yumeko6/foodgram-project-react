@@ -6,8 +6,8 @@ from rest_framework.permissions import (IsAuthenticated,
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .paginators import CustomPagination
 from .models import Follow, User
+from .paginators import CustomPagination
 from .serializers import CustomUserSerializer, FollowSerializer
 
 
@@ -30,7 +30,7 @@ class FollowViewSet(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if Follow.objects.filter(
-            user=request.user, author_id=user_id
+                user=request.user, author_id=user_id
         ).exists():
             return Response(
                 {'error': 'Вы уже подписаны на этого автора!'},
