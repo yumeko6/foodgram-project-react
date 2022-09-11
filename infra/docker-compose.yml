@@ -12,7 +12,7 @@ services:
       timeout: 5s
       retries: 5
   web:
-    image: yumeko1/foodgram-backend:v1.0
+    image: yumeko1/foodgram-backend:v1.1
     restart: always
     volumes:
       - static_value:/app/static/
